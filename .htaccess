@@ -1,0 +1,23 @@
+# Enable Rewrite Engine
+RewriteEngine On
+
+# Remove .php Extension from URLs
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.php -f
+RewriteRule ^([^\.]+)$ $1.php [L]
+
+# Define Custom Error Pages
+ErrorDocument 403 /ams-portal/403.php
+ErrorDocument 404 /ams-portal/404.php
+ErrorDocument 500 /ams-portal/500.php
+
+
+# Redirect all directory-level access attempts to a 404 error
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteCond %{REQUEST_URI} !^/ams-portal/$
+RewriteRule ^.*$ /ams-portal/404.php [L]
+
+# Redirect all requests to index.php for advanced routing (if necessary)
+#RewriteCond %{REQUEST_FILENAME} !-f
+#RewriteCond %{REQUEST_FILENAME} !-d
+#RewriteRule ^(.*)$ index.php [QSA,L]
