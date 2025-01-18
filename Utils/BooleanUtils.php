@@ -4,6 +4,10 @@ namespace AmsApp\Utils;
 
 class BooleanUtils {
 
+    const TRUE = "true";
+
+    const FALSE = "false";
+
     // Performs an 'and' operation on a set of booleans
     public static function and(...$array) {
         foreach ($array as $bool) {

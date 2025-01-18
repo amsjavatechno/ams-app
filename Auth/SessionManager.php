@@ -1,6 +1,7 @@
 <?php
 
 namespace AmsApp\Auth;
+
 class SessionManager
 {
     // Start session when the class is instantiated
@@ -12,7 +13,7 @@ class SessionManager
     }
 
     // Method to handle login
-    public function login($userId, $userName, $userEmail, $role, $isAdmin = false, $isSuperAdmin = false)
+    public function login($userId, $userName, $userEmail, $role, $isAdmin = false, $isSuperAdmin = false): void
     {
         $_SESSION['user_id'] = $userId;
         $_SESSION['user_name'] = $userName;
@@ -55,7 +56,7 @@ class SessionManager
     }
 
     // Check if the current user has specific permission
-    public function hasPermission($permission)
+    public function hasPermission($permission): bool
     {
         // This assumes that permissions are stored in session or can be retrieved via role.
         if (isset($_SESSION['role'])) {
@@ -66,7 +67,7 @@ class SessionManager
     }
 
     // This method will return an array of permissions based on the user's role
-    private function getPermissionsByRole($role)
+    private function getPermissionsByRole($role): array
     {
         // Define role-based permissions (This can also be fetched from the database)
         $permissions = [
@@ -103,7 +104,7 @@ class SessionManager
     }
 
     // Redirect user if not a super admin
-    public function requireSuperAdmin()
+    public function requireSuperAdmin(): void
     {
         if (!$this->isSuperAdmin()) {
             header('Location: forbidden.php');
@@ -145,11 +146,12 @@ class SessionManager
     }
 
     // Check if the current user is logged in and has a specific role
-    public function isRoleLoggedIn($role)
+    public function isRoleLoggedIn($role): bool
     {
         return $this->isLoggedIn() && $this->hasRole($role);
     }
 
 
 }
+
 ?>

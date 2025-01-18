@@ -36,8 +36,8 @@ class CSRFUtil {
      *
      * @return string HTML input element with the CSRF token.
      */
-    public static function getHiddenInput(): string {
+    public static function getHiddenInput(string $id): string {
         $token = self::generateToken();
-        return '<input type="hidden" id="hiddenItem" name="csrf_token" value="' . htmlspecialchars($token, ENT_QUOTES, 'UTF-8') . '">';
+        return '<input type="hidden" id="'.$id.'" name="csrf_token" value="' . htmlspecialchars($token, ENT_QUOTES, 'UTF-8') . '">';
     }
 }

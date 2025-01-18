@@ -2,7 +2,12 @@
 
 namespace AmsApp\Utils\Http;
 
-class ResponseBody {
+class ResponseBody
+{
+
+    const ERROR = "error";
+    const SUCCESS = 'success';
+
     private static bool $headersSet = false;
 
     /**
@@ -25,7 +30,8 @@ class ResponseBody {
      * @param mixed|null $data Additional data to return (optional).
      * @return void
      */
-    private static function sendResponse(int $statusCode, string $status, string $message, mixed $data = null): void {
+    private static function sendResponse(int $statusCode, string $status, mixed $message = null, mixed $data = null): void
+    {
         self::setJsonHeader(); // Ensure headers are set once
 
         // Set the HTTP response code
@@ -34,9 +40,13 @@ class ResponseBody {
         // Create the response array
         $response = [
             'status' => $status,
-            'message' => $message,
-            'data' => $data
+            'response' => $data
         ];
+
+        if ($message) {
+            $response['message'] = $message;
+        }
+
 
         // Return the response as JSON
         echo json_encode($response);
@@ -50,7 +60,8 @@ class ResponseBody {
      * @param mixed $data Additional data to return (optional).
      * @return void
      */
-    public static function sendSuccessResponse(string $message, $data = null): void {
+    public static function sendSuccessResponse(string $message, $data = null): void
+    {
         self::sendResponse(200, 'success', $message, $data);
     }
 
@@ -61,7 +72,8 @@ class ResponseBody {
      * @param mixed $data Additional data to return (optional).
      * @return void
      */
-    public static function sendErrorResponse(string $message, $data = null): void {
+    public static function sendErrorResponse(string $message, $data = null): void
+    {
         self::sendResponse(400, 'error', $message, $data);
     }
 
@@ -72,7 +84,8 @@ class ResponseBody {
      * @param mixed $data Additional data to return (optional).
      * @return void
      */
-    public static function sendNotFoundResponse(string $message, $data = null): void {
+    public static function sendNotFoundResponse(string $message, $data = null): void
+    {
         self::sendResponse(404, 'error', $message, $data);
     }
 
@@ -83,7 +96,8 @@ class ResponseBody {
      * @param mixed $data Additional data to return (optional).
      * @return void
      */
-    public static function sendInternalServerErrorResponse(string $message, $data = null): void {
+    public static function sendInternalServerErrorResponse(string $message, $data = null): void
+    {
         self::sendResponse(500, 'error', $message, $data);
     }
 
@@ -95,7 +109,8 @@ class ResponseBody {
      * @param mixed $data The data to return.
      * @return void
      */
-    public static function sendDataResponse(int $statusCode, string $status, $data): void {
-        self::sendResponse($statusCode, $status, '', $data);
+    public static function sendDataResponse(int $statusCode, string $status, mixed $message, mixed $data): void
+    {
+        self::sendResponse($statusCode, $status, $message, $data);
     }
 }

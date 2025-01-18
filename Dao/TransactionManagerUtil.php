@@ -1,17 +1,19 @@
 <?php
 
 namespace AmsApp\Dao;
+
+use AmsApp\Configuration\Database;
 use AmsApp\Logger;
-use PDO;
 use Exception;
+use PDO;
 
 class TransactionManagerUtil
 {
     private PDO $pdo;
 
-    public function __construct(PDO $pdo)
+    public function __construct()
     {
-        $this->pdo = $pdo;
+        $this->pdo = Database::getInstance()->conn;
     }
 
     /**

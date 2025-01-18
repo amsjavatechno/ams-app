@@ -66,7 +66,7 @@ class CookiesUtil
      * @param string $path The path where the cookie is accessible (default: '/').
      * @param string|null $domain The domain where the cookie is accessible (default: null for current domain).
      */
-    public static function deleteCookie(string $name, string $path = '/', string $domain = null)
+    public static function deleteCookie(string $name, string $path = '/', string $domain = null): void
     {
         self::setCookie($name, '', -3600, $path, $domain);
     }

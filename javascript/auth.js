@@ -1,134 +1,114 @@
-const messageDialog = $("#messageDialog");
-const messageContent = $("#messageContent");
 const signupForm = $('#signupForm');
 const otpForm = $('#otpForm');
-const messageContainer = $('#messageContainer');
 const otpInputs = $('.otp-input');
 
-document.addEventListener("DOMContentLoaded", () => {
-    const toastEl = document.getElementById('toastMessage');
-    const toast = new bootstrap.Toast(toastEl);
 
-    // Trigger the toast
-    toast.show();
+$(document).ready(function () {
+    verifyAndSubmitSignUpForm();
+})
 
-    // Optional: Add a custom trigger
-    document.getElementById('showToastBtn').addEventListener('click', () => {
-        toast.show();
-    });
-});
+function showValidationMessageInModal(msgContent,title) {
+    // Get the modal element (ensure the modal HTML is already part of your page)
+    const modal = document.getElementById('errorModal');
+    const modalBody = modal.querySelector('.modal-body');
+    const modalTitle = modal.querySelector('.modal-title');
 
-
-
-    document.addEventListener('DOMContentLoaded', () => {
-    const modal = new bootstrap.Modal(document.getElementById('exampleModal'));
-
-    modal.show();
-
-//     // Show the modal
-//     document.getElementById('openModalBtn').addEventListener('click', () => {
-//     modal.show();
-// });
-//
-//     // Hide the modal
-//     document.getElementById('closeModalBtn').addEventListener('click', () => {
-//     modal.hide();
-// });
-});
-
-
-// Function to display error message
-function showError(input, message) {
-    const errorElement = document.getElementById(input.id + "Error");
-    errorElement.textContent = message;
-    input.classList.add("invalid");
-}
-
-// Function to clear error message
-function clearError(input) {
-    const errorElement = document.getElementById(input.id + "Error");
-    errorElement.textContent = "";
-    input.classList.remove("invalid");
-}
-
-// Function to check if form is valid
-function checkFormValidity() {
-    const submitBtn = document.getElementById("submitBtn");
-    const inputs = document.querySelectorAll("#signupForm input");
-    let isValid = true;
-    inputs.forEach((input) => {
-        if (input.type !== "checkbox" && !input.checkValidity()) {
-            isValid = false;
-        }
-        if (input.type === "checkbox" && !input.checked) {
-            isValid = false;
-        }
-    });
-    submitBtn.disabled = !isValid; // Enable submit button if form is valid
-}
-
-
-document.getElementById("password").addEventListener("focusout", (e) => {
-    const input = e.target;
-    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/;
-    if (!passwordRegex.test(input.value.trim())) {
-        showError(
-            input,
-            "Password must be at least 8 characters long and include a letter, a number, and a special character."
-        );
-    } else {
-        const submitBtn = document.getElementById("submitBtn");
-        clearError(input);
-        submitBtn.disabled = false;
-
+    // Set the content for the modal
+    modalTitle.textContent = "Validation Error";  // Set the modal title
+    if(title!==null){
+        modalTitle.textContent = title;
     }
-});
+    modalBody.textContent = msgContent;  // Set the error message
+    hideLogoAnimation()
 
-document.getElementById("terms").addEventListener("change", (e) => {
-    const input = e.target;
-    if (!input.checked) {
-        showError(input, "You must agree to the terms and policy.");
-    } else {
-        clearError(input);
+
+
+
+
+
+    // Show the modal using Bootstrap's modal method
+    const modalInstance = new bootstrap.Modal(modal);
+    modalInstance.show();
+}
+
+function removeTooltipIfAlreadyExist(inputField) {
+    if(inputField && inputField.classList && inputField.classList.contains('is-invalid')){
+        inputField.classList.remove('is-invalid');
     }
-    checkFormValidity();
-});
+}
 
-// Optional: Prevent form submission if there are errors
-document.getElementById("signupForm").addEventListener("submit", (e) => {
-    const inputs = document.querySelectorAll("#signupForm input");
-    let isValid = true;
-    inputs.forEach((input) => {
-        if (!input.checkValidity()) {
-            isValid = false;
-            showError(input, input.validationMessage);
+
+
+
+
+
+function verifyAndSubmitSignUpForm(){
+    // Handle signup form submission
+    signupForm.on('submit', function (event) {
+        showLogoAnimation();
+        event.preventDefault();
+        // Collect form data
+        const $name = $('#name');
+        const $email = $('#email');
+        const $password = $('#password');
+        const $SignUpBasedToken = $('#SignUpBasedToken');
+        const $terms = $('#terms');
+        const formData = {
+            name: $name.val(),
+            email: $email.val(),
+            password: $password.val(),
+            token: $SignUpBasedToken.val(),
+            terms: $terms.is(':checked') ? 'on' : 'off'
+        };
+
+        if (!isValidUsername(formData.name)) {
+            showValidationMessageInModal('Username should be contains at least 3 Character.',$name);
+            return;
         }
+
+        // Validate email
+        if (!isValidEmail(formData.email)) {
+            showValidationMessageInModal('Please enter a valid email address.',$email);
+            return;
+        }
+
+        // Validate password
+        if (!isValidPassword(formData.password)) {
+            showValidationMessageInModal('Password must be at least 8 characters long, and include a letter, a number, and a special character.', $password);
+            return;
+        }
+        removeTooltipIfAlreadyExist($name);
+        removeTooltipIfAlreadyExist($password);
+        removeTooltipIfAlreadyExist($email);
+        submitSignUpForm(formData);
+        submitOtpForm();
     });
-    if (!isValid) {
-        e.preventDefault(); // Prevent form submission
-    }
+
+}
+
+$(document).ajaxStart(function() {
+    showLogoAnimation();
 });
 
+// Hide the overlay and loader when the AJAX request completes
+$(document).ajaxStop(function() {
+    hideLogoAnimation();
+});
 
-// Validate email
-function isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+function showLogoAnimation() {
+    $('#logo-container').fadeIn(1000).css('opacity', 1).css('pointer-events', 'auto'); // Show logo with fade-in effect
 }
 
-// Validate password
-function isValidPassword(password) {
-    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    return passwordRegex.test(password);
-}
-
-// Validate username
-function isValidUsername(username) {
-    return username.trim().length > 0;
+// Function to hide the logo container
+function hideLogoAnimation() {
+    $('#logo-container').fadeOut(1000).css('opacity', 0).css('pointer-events', 'none'); // Hide logo with fade-out effect
 }
 
 
-function submitSignUpForm(formData, messageContainer) {
+
+
+
+function submitSignUpForm(formData) {
     // Send signup data using jQuery AJAX with JSON payload
     $.ajax({
         url: '../api/auth/register.php',
@@ -137,112 +117,34 @@ function submitSignUpForm(formData, messageContainer) {
         data: JSON.stringify(formData), // Convert data to JSON
         dataType: 'json',
         success: function (response) {
+            hideLogoAnimation();
             console.log('Server Response:', response); // Debug server response
             if (response.status === 'success') {
-                // Display success message
-                messageContainer
-                    .removeClass()
-                    .addClass('success')
-                    .text('Signup successful! Please check your email for the OTP.')
-                    .show();
-
                 // Hide signup form and show OTP form
                 signupForm.hide();
+                // Show the modal
+                hideLogoAnimation();
                 otpForm.show();
+                // var otpModal = new bootstrap.Modal(document.getElementById('otpModal'));
+                // otpModal.show();
             } else {
                 // Display error message
-                messageContainer
-                    .removeClass()
-                    .addClass('error')
-                    .text(response.message)
-                    .show();
+                setInterval(showValidationMessageInModal(response.message,"Notification"),500);
             }
         },
         error: function (xhr, status, error) {
-            console.error('Error:', error);
+            hideLogoAnimation();
             // Display error message
-            messageContainer
-                .removeClass()
-                .addClass('error')
-                .text('There was an error with the sign-up process.')
-                .show();
+            showValidationMessageInModal('There was an error with the sign-up process.',"Notification");
         },
     });
 }
 
 
-// Initialize the jQuery UI dialog
-messageDialog.dialog({
-    autoOpen: false,
-    modal: true,
-    buttons: {
-        OK: function () {
-            $(this).dialog("close");
-        }
-    }
-});
+// otp form
 
-// Utility function to show messages
-function showMessage(message, type = "info") {
-    // messageContent.text(message);
-    //
-    // // Add a class to style the message based on type
-    // messageDialog.dialog("option", "title", type === "error" ? "Error" : "Success");
-    // messageDialog.dialog("open");
+function submitOtpForm() {
 
-
-    jQuery.notify("You have successfully verified your OTP!", {
-        className: type === "error" ? "Error" : "success",
-        globalPosition: 'top right',
-        autoHide: true,
-        clickToHide: true
-    });
-
-
-}
-
-
-$(document).ready(function () {
-    // Handle signup form submission
-    signupForm.on('submit', function (event) {
-        event.preventDefault();
-
-        // Collect form data
-        const formData = {
-            name: $('#name').val(),
-            email: $('#email').val(),
-            password: $('#password').val(),
-            token: $('#hiddenItem').val(),
-            terms: $('#terms').is(':checked') ? 'on' : 'off'
-        };
-
-        // Debug collected data
-        console.log('Form Data:', formData);
-
-        if (!isValidUsername(formData.name)) {
-            showMessage('Username cannot be empty.', "error");
-            return;
-        }
-
-        // Validate email
-        if (!isValidEmail(formData.email)) {
-            showMessage('Please enter a valid email address.', "error");
-            return;
-        }
-
-        // Validate password
-        // if (!isValidPassword(formData.password)) {
-        //     showMessage('Password must be at least 8 characters long, and include a letter, a number, and a special character.', "error");
-        //     return;
-        // }
-
-        // Send signup data using jQuery AJAX with JSON payload
-        submitSignUpForm(formData, messageContainer);
-        signupForm.hide();
-        otpForm.show();
-    });
-
-    // Handle OTP form submission
     otpForm.on('submit', function (event) {
         event.preventDefault();
 
@@ -254,26 +156,53 @@ $(document).ready(function () {
             .get()
             .join('');
 
-        console.log('Entered OTP:', otp);
+        const formData = {
+            otp: otp,
+            token: $('#OtpBasedToken').val()
+        };
+
+        console.log(formData)
 
         // Send OTP for verification (dummy example)
         $.ajax({
-            url: 'verify-otp.php',
+            url: '../api/auth/verifyOtp.php',
             type: 'POST',
-            data: {otp},
+            contentType: 'application/json', // Set Content-Type to application/json
+            data: JSON.stringify(formData), // Convert data to JSON
             dataType: 'json',
             success: function (response) {
                 if (response.status === 'success') {
-                    alert('OTP verified successfully!');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'OTP verified successfully!',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        // Redirect to login page
+                        window.location.href = 'login.php';
+                    });
                 } else {
-                    alert('OTP verification failed. Please try again.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Failed!',
+                        text: 'OTP verification failed. Please try again.'
+                    });
                 }
             },
             error: function (xhr, status, error) {
                 console.error('Error:', error);
-                alert('There was an error verifying the OTP.');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: 'There was an error verifying the OTP.',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    // Redirect to login page
+                    window.location.href = 'index.php';
+                });
             }
         });
+
     });
 
     // Handle Back button
@@ -301,4 +230,10 @@ $(document).ready(function () {
             $this.prev('.otp-input').focus();
         }
     });
-});
+
+
+}
+
+
+
+

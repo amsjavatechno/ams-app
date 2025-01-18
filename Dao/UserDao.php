@@ -1,6 +1,9 @@
 <?php
 
 namespace AmsApp\Dao;
+
+use AmsApp\Utils\BooleanUtils;
+
 require __DIR__ . '/../vendor/autoload.php';
 
 class UserDao extends CommonDao
@@ -23,7 +26,7 @@ class UserDao extends CommonDao
      * @param string $email The user's email.
      * @return array The user data.
      */
-    public function getUserByEmail($email)
+    public function getUserByEmail(string $email): ?array
     {
         $query = "SELECT * FROM users WHERE email = :email";
         return $this->fetchOne($query, ['email' => $email]);
@@ -41,7 +44,7 @@ class UserDao extends CommonDao
      * @param int $version_id The version ID (typically 0 for new records).
      * @return int The ID of the inserted user.
      */
-    public function insertUser($user_id, $name, $email, $password_hash, $gender_id, $status_id, $version_id): int
+    public function insertUser(int $user_id, string $name, string $email, string $password_hash, int $gender_id, int $status_id, $version_id): int
     {
         $query = "INSERT INTO users (user_id, name, email, password_hash, gender_id, status_id, version_id) 
                   VALUES (:user_id, :name, :email, :password_hash, :gender_id, :status_id, :version_id)";
@@ -57,8 +60,7 @@ class UserDao extends CommonDao
     }
 
 
-
-        // Modified method to only take name, email, and password_hash for user registration
+    // Modified method to only take name, email, and password_hash for user registration
     public function createUser($name, $email, $password_hash): int
     {
         // Set default values for gender_id, status_id, and version_id
@@ -66,23 +68,28 @@ class UserDao extends CommonDao
         $status_id = 1; // Default status (active or whatever is applicable)
         $version_id = 1; // Default version ID (change it as required)
 
+        // Generate user_id
+        $user_id = uniqid("USR_", BooleanUtils::TRUE);
+        $username = $user_id;
+
+
         // The query to insert the user into the database
-        $query = "INSERT INTO users (name, email, password_hash, gender_id, status_id, version_id) 
-                  VALUES (:name, :email, :password_hash, :gender_id, :status_id, :version_id)";
+        $query = "INSERT INTO users (user_id,name,username,email, password_hash,email_verified ,gender_id, status_id, version_id) 
+                  VALUES (:user_id, :name, :username, :email, :password_hash,:email_verified ,:gender_id, :status_id, :version_id)";
 
         // Execute the query and return the result (inserted user ID or failure)
         return $this->insert($query, [
+            'user_id' => $user_id,
             'name' => $name,
+            'username' => $username,
             'email' => $email,
             'password_hash' => $password_hash,
+            'email_verified' => 1,
             'gender_id' => $gender_id,
             'status_id' => $status_id,
             'version_id' => $version_id
         ]);
     }
-
-
-
 
 
     /**
@@ -138,10 +145,11 @@ class UserDao extends CommonDao
      * @param int $user_id The user ID.
      * @return int The number of rows affected.
      */
-    public function deleteUser($user_id)
+    public function deleteUser(int $user_id): int
     {
         $query = "DELETE FROM users WHERE user_id = :user_id";
         return $this->delete($query, ['user_id' => $user_id]);
     }
 }
+
 ?>

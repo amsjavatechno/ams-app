@@ -2,7 +2,11 @@
 
 namespace AmsApp\Utils\Http;
 
-class HttpBaseUtil{
+use AmsApp\Constants\BaseConstants;
+use AmsApp\Exceptions\ExceptionBuilder;
+
+class HttpBaseUtil
+{
 
     const CONTENT_TYPE_JSON = 'application/json';
     const CONTENT_TYPE_FORM = 'application/x-www-form-urlencoded';
@@ -12,6 +16,19 @@ class HttpBaseUtil{
     const POST_METHOD = 'POST';
     const PUT_METHOD = 'PUT';
     const DELETE_METHOD = 'DELETE';
+
+
+    const HTTP_OK = 200;
+    const HTTP_CREATED = 201;
+    const HTTP_NO_CONTENT = 204;
+    const HTTP_BAD_REQUEST = 400;
+    const HTTP_UNAUTHORIZED = 401;
+    const HTTP_FORBIDDEN = 403;
+    const HTTP_NOT_FOUND = 404;
+    const HTTP_METHOD_NOT_ALLOWED = 405;
+    const HTTP_INTERNAL_SERVER_ERROR = 500;
+    const HTTP_SERVICE_UNAVAILABLE = 503;
+
 
     /**
      * Verify if the HTTP request method matches the expected method.
@@ -100,5 +117,13 @@ class HttpBaseUtil{
         }
 
         return $parsedData;
+    }
+
+    public static function validatePostRequest(): void
+    {
+        // Check if the request method is POST
+        if (!self::verifyMethod(HttpBaseUtil::POST_METHOD)) {
+            ExceptionBuilder::create()->withCode(self::HTTP_METHOD_NOT_ALLOWED)->withMessage(BaseConstants::INVALID_REQUEST_METHOD_ONLY_POST_REQUESTS_ARE_ALLOWED)->build()->throwNow();
+        }
     }
 }
