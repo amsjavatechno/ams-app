@@ -56,7 +56,7 @@ class Logger
         }
     }
 
-    public function log_error(string $message)
+    public function log_error(string $message): void
     {
         $this->log(self::ERROR, $message);
     }

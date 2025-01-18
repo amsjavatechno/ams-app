@@ -1,48 +1,43 @@
 <?php
 require __DIR__ . '/../../vendor/autoload.php';
+
+use AmsApp\Constants\AppConstants;
 use AmsApp\Security\CSRFUtil;
 use AmsApp\Security\InputSanitizer;
 use AmsApp\Service\UserService\UserRegistrationService;
-use AmsApp\Dao\UserDao;
-use AmsApp\Dao\OtpVerificationDao;
-use AmsApp\Communication\EmailUtil;
 use AmsApp\Utils\Http\HttpBaseUtil;
 use AmsApp\Utils\Http\ResponseBody;
+use AmsApp\Utils\SessionFactory;
 
 try {
 
-
-    // Check if the request method is POST
-    if (HttpBaseUtil::verifyMethod(HttpBaseUtil::POST_METHOD)) {
-        throw new Exception("Invalid request method. Only POST requests are allowed.");
-    }
+    HttpBaseUtil::validatePostRequest();
 
     // Input validation: Retrieve POST data
     $data = HttpBaseUtil::parseJsonInput();
 
-    $csrfToken = $data['csrf_token']; // CSRF Token from the client
+    $csrfToken = $data['token']; // CSRF Token from the client
     $email = InputSanitizer::sanitize($data['email'], InputSanitizer::EMAIL_SANITIZER);
-    $name = InputSanitizer::sanitize($data['name'],InputSanitizer::STRING_SANITIZER);
-    $password = InputSanitizer::sanitize($data['password'],InputSanitizer::STRING_SANITIZER);
+    $name = InputSanitizer::sanitize($data['name'], InputSanitizer::STRING_SANITIZER);
+    $password = InputSanitizer::sanitize($data['password'], InputSanitizer::STRING_SANITIZER);
 
     // CSRF Token Validation
     if (!CSRFUtil::validateToken($csrfToken)) {
         throw new Exception("Invalid CSRF Token.");
     }
 
-    // Service instantiation
-    $userDao = new UserDao();
-    $otpDao = new OtpVerificationDao();
-    $emailUtil = new EmailUtil();
-    $registrationService = new UserRegistrationService($userDao, $otpDao, $emailUtil);
+    $registrationService = new UserRegistrationService();
 
     // Register the user and send OTP
-    $response = $registrationService->registerUserAndSendOtp($email, $name, $password);
+    $response = $registrationService->setUserInCookieAndSendOtp($email, $name, $password);
+
+    SessionFactory::set(AppConstants::SESSION_EMAIL, $email);
 
     // Return the response using ResponseBody
-    ResponseBody::sendDataResponse(200, 'success', $response);
+    ResponseBody::sendDataResponse(200, ResponseBody::SUCCESS, null, $response);
 
 } catch (Exception $e) {
     // Handle error responses using ResponseBody
-    ResponseBody::sendResponse(400, 'error', $e->getMessage());
+    ResponseBody::sendDataResponse(200, ResponseBody::ERROR, $e->getMessage(), null);
 }
+

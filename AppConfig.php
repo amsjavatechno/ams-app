@@ -15,7 +15,7 @@ try {
 }
 
 class AppConfig {
-    private static $initialized = false;
+    private static bool $initialized = false;
     private static MapWrapper $propertiesMap;
 
     private function __construct()
@@ -26,7 +26,11 @@ class AppConfig {
         return self::$propertiesMap->containsKey($key)?self::$propertiesMap->get($key):StringUtils::BLANK;
     }
 
-    public static function initialize($filePath) {
+    /**
+     * @throws Exception
+     */
+    public static function initialize($filePath): void
+    {
         if (self::$initialized) {
             return;
         }else{

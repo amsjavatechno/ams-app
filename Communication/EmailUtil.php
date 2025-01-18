@@ -3,8 +3,10 @@
 namespace AmsApp\Communication;
 require __DIR__.'/../vendor/autoload.php';
 use AmsApp\AppConfig;
+use AmsApp\Utils\Http\HttpBaseUtil;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use AmsApp\Exceptions\ExceptionBuilder;
 class EmailUtil
 {
     const EMAIL_HOST_NAME = "email.host.name";
@@ -31,18 +33,18 @@ class EmailUtil
             $this->mailer->Port = AppConfig::getPropertyValueByKey(self::EMAIL_PORT);
             $this->mailer->setFrom(AppConfig::getPropertyValueByKey(self::EMAIL_FROM_ADDRESS), AppConfig::getPropertyValueByKey(self::EMAIL_TITLE));
         } catch (Exception $e) {
-            throw new \Exception("Failed to configure PHPMailer: " . $e->getMessage());
+            ExceptionBuilder::create()->withCode(HttpBaseUtil::HTTP_INTERNAL_SERVER_ERROR)->withMessage("Failed to configure PHPMailer: " . $e->getMessage())->build();
         }
     }
 
-    public function connect()
+    public function connect(): void
     {
         if (!$this->connected) {
             try {
                 $this->mailer->smtpConnect();
                 $this->connected = true;
             } catch (Exception $e) {
-                throw new \Exception("Failed to connect to SMTP: " . $e->getMessage());
+                ExceptionBuilder::create()->withMessage("Failed to connect to SMTP: " . $e->getMessage())->build();
             }
         }
     }
@@ -65,12 +67,12 @@ class EmailUtil
 
             $isSuccess = $this->mailer->send();
         } catch (Exception $e) {
-            throw new \Exception("Failed to send email: " . $e->getMessage());
+            ExceptionBuilder::create()->withMessage("Failed to send email: " . $e->getMessage())->build()->throwNow();
         }
         return $isSuccess;
     }
 
-    public function close()
+    public function close(): void
     {
         if ($this->connected) {
             $this->mailer->smtpClose();
